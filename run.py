@@ -10,14 +10,13 @@ MAX_SENTENCES = 10000
 
 def main():
     # load data
-    sentences = loadData("kor","eng")
-    import ipdb; ipdb.set_trace()
+    sentences = loadData("spa","eng")
 
-    # compute frequency
-    word_freq = computeFrequency(sentences)
+    # compute word rank
+    word_rank = computeFrequency(sentences)
 
     # score all sentences
-    sentence_score = computeScore(setences,word_freq)
+    sentence_score = computeScore(setences,word_rank)
 
     # now simply pop off as much as you want
     f.open()
@@ -77,6 +76,9 @@ def loadData(lang1,lang2):
             line = line[0:-1] # gets rid of newline
             split = line.split("\t")
             if split[0] in sentences and split[1] in sentences:
+                if sentences[split[0]][0] == sentences[split[1]][0]:
+                    continue # the languages are the same
+                    
                 if sentences[split[0]][0] == lang1:
                     pairs.append((sentences[split[0]][1], sentences[split[1]][1]))
                 else:
@@ -84,13 +86,44 @@ def loadData(lang1,lang2):
                     
     return pairs
 
-def computeFrequency(setences):
+def computeFrequency(sentences):
     """
     Computes the word frequency
 
     Returns a large dictionary where the keys are the word, and the
     value is the rank
     """
-    pass
+    print "Counting words..."
+    
+    # first count word frequencies
+    word_count = {}
+    for s in sentences:
+        s = s[0]
+        # make lowercase
+        s = s.lower()
+
+        # strip punctuation
+        import string
+        s = s.translate(string.maketrans("",""), string.punctuation)
+
+        words = s.split(" ")
+        for w in words:
+            try:
+                word_count[w] += 1
+            except:
+                word_count[w] = 1
+
+    # now sort
+    import operator
+    sorted_words = sorted(word_count.items(),
+                      key=operator.itemgetter(1),
+                      reverse=True)
+
+    # now output dictionary with key=word value=rank
+    word_rank = {}
+    for i,w in enumerate(sorted_words):
+        word_rank[w[0]] = i + 1
+
+    return word_rank
 
 main()
