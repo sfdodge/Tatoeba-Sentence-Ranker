@@ -7,7 +7,6 @@ frequent words come first
 To do:
 1. Remove duplicates? (check for links in the same language
 2. implement qt interface
-2a. threading see -> https://wiki.python.org/moin/PyQt/Threading,_Signals_and_Slots
 3. create readme file
 4. Compile exe?
 5. pep check
@@ -29,9 +28,11 @@ MAX_SENTENCES = 5000000
 OUTPUT_NUMBER = 1000
 OUTFILE = 'output.csv'
 
-class SentenceScorer(QObject):
-    def __init__(self,lang1,lang2):
-        super(SentenceScorer, self).__init__()
+class SentenceScorer(QThread):
+    def __init__(self,lang1,lang2,parent = None):
+        #super(SentenceScorer, self).__init__()
+        QThread.__init__(self,parent)
+        self.exiting = False
 
         self.lang1 = lang1
         self.lang2 = lang2
@@ -42,8 +43,11 @@ class SentenceScorer(QObject):
         """
         print msg
         self.emit(SIGNAL("message"), msg)
-        
+
     def generateScore(self):
+        self.start() # start qt thread
+        
+    def run(self):
         """
         Main function to generate everything
         """
@@ -66,7 +70,8 @@ class SentenceScorer(QObject):
 
                 writer.writerow(s)
 
-    sendMessage("Done...Output is in output.csv")
+        self.sendMessage("Done...Output is in output.csv")
+        self.exiting = True
 
     def loadData(self):
         """
@@ -204,9 +209,15 @@ class SentenceScorer(QObject):
         return scores
 
 
+    def __del__(self):
+        self.exiting = True
+        self.wait()
+
+
 class Form(QDialog):
     def __init__(self, parent=None):
         super(Form, self).__init__(parent)
+
 
         langs = ('English',
                  'French',
@@ -246,11 +257,12 @@ class Form(QDialog):
 
         self.setWindowTitle("Tatoeba Sentence Generator")
 
+        self.scorer = SentenceScorer('fra','eng')
+        self.connect(self.scorer,SIGNAL('message'),self.statusLabel.setText)
+
     def generate(self):
         self.generateButton.setDisabled(True)
-        s = SentenceScorer('fra','eng')
-        s.connect(s,SIGNAL('message'),self.statusLabel.setText)
-        s.generateScore()
+        self.scorer.generateScore()
         self.generateButton.setEnabled(True)
 
 app = QApplication(sys.argv)
