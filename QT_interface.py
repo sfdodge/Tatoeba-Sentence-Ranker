@@ -20,6 +20,13 @@ class QTSentenceScorer(SentenceScorer, QThread):
         print msg
         self.emit(SIGNAL("message"), msg)
 
+    def sendError(self, err):
+        """
+        Function to send error
+        """
+        print err
+        self.emit(SIGNAL("error"), err)
+
     def generateScore(self):
         self.start()  # start qt thread
 
@@ -45,7 +52,6 @@ class Form(QDialog):
         self.nSentenceField = QSpinBox()
         self.nSentenceField.setRange(1, 100000)
         self.nSentenceField.setValue(1000)
-        self.statusLabel = QLabel("")
         self.fromLabel = QLabel("Source")
         self.toLabel = QLabel("Target")
         self.nSentenceLabel = QLabel("Number of sentences")
@@ -60,10 +66,11 @@ class Form(QDialog):
         grid.addWidget(self.nSentenceLabel, 2, 0)
         grid.addWidget(self.nSentenceField, 2, 1)
         grid.addWidget(self.generateButton, 3, 1)
-        grid.addWidget(self.statusLabel, 3, 0)
         self.setLayout(grid)
 
         self.setWindowTitle("Tatoeba Sentence Ranker")
+
+        self.setFixedSize(QSize(400, 150))
 
     def generate(self):
         # get filename
@@ -76,21 +83,41 @@ class Form(QDialog):
 
         # get parameters
         lang1 = unicode(self.fromComboBox.currentText().toUtf8(),
-                        encoding = "UTF-8")
+                        encoding="UTF-8")
         lang2 = unicode(self.toComboBox.currentText().toUtf8(),
-                        encoding = "UTF-8")
+                        encoding="UTF-8")
         num = int(self.nSentenceField.value())
 
-        #debug_trace()
+        self.progressDialog = QProgressDialog("Running...",
+                                              QString(),
+                                              0,
+                                              6,
+                                              parent=self)
+        self.progressDialog.setWindowModality(Qt.WindowModal)
+        self.progressDialog.show()
 
-        self.generateButton.setDisabled(True)
         self.scorer = QTSentenceScorer(LANGUAGES[lang2],
                                        LANGUAGES[lang1],
                                        num,
                                        fileName)
-        self.connect(self. scorer, SIGNAL('message'), self.statusLabel.setText)
+        self.connect(self.scorer, SIGNAL('message'), self.incrementProgress)
+        self.connect(self.scorer, SIGNAL('message'), self.progressDialog.setLabelText)
+        self.connect(self.scorer, SIGNAL('error'), self.showError)
         self.scorer.generateScore()
-        self.generateButton.setEnabled(True)
+
+    def incrementProgress(self):
+        """
+        Increment progress bar
+        """
+        self.progressDialog.setValue(self.progressDialog.value()+1)
+
+    def showError(self, err):
+        """
+        Popup error message
+        """
+        self.progressDialog.setValue(6)
+        message = QErrorMessage(parent=self)
+        message.showMessage(err)
 
 
 def debug_trace():

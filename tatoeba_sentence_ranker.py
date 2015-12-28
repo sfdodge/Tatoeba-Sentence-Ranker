@@ -5,23 +5,15 @@ Extracts sentences and orders them such that setences with more
 frequent words come first
 
 To do:
-1. Remove duplicates? (check for links in the same language
-2. implement qt interface
-2a. limit resize
-2aaa. Progress bar
-3. create readme file
-4. Compile exe?
-5. pep check
-6. github
-7. add support for japanese/chinese
+1. Compile exe?
+2. add support for japanese/chinese
 """
 import sys
 try:
-    from QT_interface import Form,QTSentenceScorer
+    from QT_interface import Form, QTSentenceScorer
     USE_QT = True
 except:
     from sentence_scorer import SentenceScorer
-    #import pdb; pdb.set_trace()
     USE_QT = False
 
 VERSION = 1.0

@@ -21,6 +21,12 @@ class SentenceScorer():
         """
         print msg
 
+    def sendError(self, err):
+        """
+        Function to send error
+        """
+        print err
+
     def generateScore(self):
         self.run()
 
@@ -33,7 +39,7 @@ class SentenceScorer():
 
         # check if sentences
         if len(sentences) == 0:
-            self.sendMessage("Error: No sentences for this configuration")
+            self.sendError("Error: No sentences for this configuration")
             return
 
         # compute word rank
@@ -66,9 +72,9 @@ class SentenceScorer():
         # if data is not downloaded, the download
         sentence_path = (
             "http://downloads.tatoeba.org/exports/sentences.tar.bz2")
+        self.sendMessage("Downloading sentences...")
         if not os.path.isfile("sentences.csv"):
             sentence_file = urllib.URLopener()
-            self.sendMessage("Downloading sentences...")
             sentence_file.retrieve(sentence_path, "sentences.tar.gz")
             tar = tarfile.open("sentences.tar.gz")
             tar.extractall()
@@ -76,9 +82,9 @@ class SentenceScorer():
             os.remove("sentences.tar.gz")
 
         link_path = "http://downloads.tatoeba.org/exports/links.tar.bz2"
+        self.sendMessage("Downloading links...")
         if not os.path.isfile("links.csv"):
             link_file = urllib.URLopener()
-            self.sendMessage("Downloading links...")
             link_file.retrieve(link_path, "links.tar.gz")
             tar = tarfile.open("links.tar.gz")
             tar.extractall()
@@ -102,7 +108,7 @@ class SentenceScorer():
         # now get the pairs in our languages
         # lang1 is first
         pairs = []
-        dupes = {}
+        dupes = []
         with open("links.csv") as ins:
             self.sendMessage("Computing pairs...")
             for line in ins:
@@ -112,12 +118,13 @@ class SentenceScorer():
                     if sentences[split[0]][0] == self.lang1:
                         # if sentences are the same, flag as a duplicate
                         if sentences[split[0]][0] == sentences[split[1]][0]:
-                            dupes[max(split[0], split[0])] = 1
+                            dupes.append(max(split[0], split[1]))
                             continue
 
                         if split[0] not in dupes:
                             pairs.append((sentences[split[0]][1],
                                           sentences[split[1]][1]))
+                            dupes.append(split[0])
 
         return pairs
 
