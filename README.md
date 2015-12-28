@@ -6,7 +6,7 @@ Often people say that the most common 1000 words in a language appear 80% (or so
 
 I wrote this script to generate sentences for studying languages. The idea is that early sentences should be simpler/easier and progressively get more difficult. The sentences are sourced from Tatoeba.org which provides many translations of simple sentences and words.
 
-To rank the sentence first the most common words are found. The most common word has a score of 1, the second most common has a score of 2, etc. To compute a score for a sentence the scores of the individual words are added. Sentences with lower scores will be shorter and contain more common words. The sentences are sorted according to this order and output to a csv file
+To rank the sentence first the most common words are found. The most common word has a score of 1, the second most common has a score of 2, etc. To compute a score for a sentence the scores of the individual words are added. Sentences with lower scores will be shorter and contain more common words. The sentences are sorted according to this order and output to a csv file.
 
 ---------------------
 ## Installation
@@ -14,6 +14,11 @@ To rank the sentence first the most common words are found. The most common word
 This script was tested on Python 2.7.
 
 For GUI you need to have PyQT installed. If PyQT is not installed the program will run from the terminal. (Eventually I will distribute an exe for people who don't have python installed.
+
+--------------------
+## Running
+
+Run with "python tatoeba_sentence_ranker.py
 
 ---------------------
 ## Known issues
